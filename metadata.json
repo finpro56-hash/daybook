@@ -1,0 +1,6 @@
+{
+  "name": "Daybook",
+  "description": "Production-ready personal productivity PWA with tasks, time tracking, money management, encrypted backups, and offline support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
