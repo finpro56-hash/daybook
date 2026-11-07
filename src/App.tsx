@@ -13,7 +13,6 @@ import { TasksTab } from './components/TasksTab';
 import { TimeTab } from './components/TimeTab';
 import { MoneyTab } from './components/MoneyTab';
 import { SettingsTab } from './components/SettingsTab';
-import { TestRunnerTab } from './components/TestRunnerTab';
 import { VaultLockScreen } from './components/VaultLockScreen';
 import { PwaInstallModal } from './components/PwaInstallModal';
 
@@ -32,19 +31,8 @@ export default function App() {
   const [isLocked, setIsLocked] = useState(false);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
 
-  // Load initial workspace
+  // Load initial workspace and register PWA service worker
   useEffect(() => {
-    // Clear stale service worker caches
-    if (typeof caches !== 'undefined') {
-      caches.keys().then((keys) => {
-        keys.forEach((key) => {
-          if (key !== 'daybook-v2') {
-            caches.delete(key);
-          }
-        });
-      });
-    }
-
     loadWorkspace().then((ws) => {
       setWorkspace(ws);
     });
@@ -56,13 +44,16 @@ export default function App() {
       });
     });
 
-    // Register service worker for PWA
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').then((reg) => {
-        reg.update();
-      }).catch(() => {
-        // ignore registration failure in dev
-      });
+    // Register service worker for PWA offline capabilities and installability
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js', { scope: '/' })
+        .then((reg) => {
+          reg.update();
+        })
+        .catch((err) => {
+          console.warn('PWA service worker registration notice:', err);
+        });
     }
 
     return () => {
@@ -132,30 +123,49 @@ export default function App() {
         <Header
           currentTab={currentTab}
           darkMode={darkMode}
-          onToggleDarkMode={() => setDarkMode(!darkMode)}
-          onLockVault={() => setIsLocked(true)}
-          onOpenInstallModal={() => setIsInstallModalOpen(true)}
           cloudSyncEnabled={false}
         />
 
         <main className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto overflow-y-auto">
           {currentTab === 'overview' && (
-            <OverviewTab workspace={workspace} onUpdateWorkspace={handleUpdateWorkspace} darkMode={darkMode} onStartTimerForTask={handleStartTimerForTask} />
+            <OverviewTab
+              workspace={workspace}
+              onUpdateWorkspace={handleUpdateWorkspace}
+              darkMode={darkMode}
+              onStartTimerForTask={handleStartTimerForTask}
+            />
           )}
           {currentTab === 'tasks' && (
-            <TasksTab workspace={workspace} onUpdateWorkspace={handleUpdateWorkspace} darkMode={darkMode} onStartTimerForTask={handleStartTimerForTask} />
+            <TasksTab
+              workspace={workspace}
+              onUpdateWorkspace={handleUpdateWorkspace}
+              darkMode={darkMode}
+              onStartTimerForTask={handleStartTimerForTask}
+            />
           )}
           {currentTab === 'time' && (
-            <TimeTab workspace={workspace} onUpdateWorkspace={handleUpdateWorkspace} darkMode={darkMode} />
+            <TimeTab
+              workspace={workspace}
+              onUpdateWorkspace={handleUpdateWorkspace}
+              darkMode={darkMode}
+            />
           )}
           {currentTab === 'money' && (
-            <MoneyTab workspace={workspace} onUpdateWorkspace={handleUpdateWorkspace} darkMode={darkMode} />
+            <MoneyTab
+              workspace={workspace}
+              onUpdateWorkspace={handleUpdateWorkspace}
+              darkMode={darkMode}
+            />
           )}
           {currentTab === 'settings' && (
-            <SettingsTab workspace={workspace} onUpdateWorkspace={handleUpdateWorkspace} darkMode={darkMode} onOpenInstallModal={() => setIsInstallModalOpen(true)} />
-          )}
-          {currentTab === 'tests' && (
-            <TestRunnerTab workspace={workspace} darkMode={darkMode} />
+            <SettingsTab
+              workspace={workspace}
+              onUpdateWorkspace={handleUpdateWorkspace}
+              darkMode={darkMode}
+              onToggleDarkMode={() => setDarkMode(!darkMode)}
+              onLockVault={() => setIsLocked(true)}
+              onOpenInstallModal={() => setIsInstallModalOpen(true)}
+            />
           )}
         </main>
       </div>

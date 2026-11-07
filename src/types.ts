@@ -46,4 +46,4 @@ export interface Workspace {
   lastExport: string;
 }
 
-export type NavTab = 'overview' | 'tasks' | 'time' | 'money' | 'settings' | 'tests';
+export type NavTab = 'overview' | 'tasks' | 'time' | 'money' | 'settings';

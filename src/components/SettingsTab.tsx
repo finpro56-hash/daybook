@@ -1,22 +1,50 @@
 /**
- * Backup and Settings Tab component
+ * Backup and Settings Tab component with App Preferences, Vault Lock, and PWA Installation
  */
 import React, { useState } from 'react';
 import { Workspace } from '../types';
 import { encryptData, decryptData, validatePassphrase } from '../utils/crypto';
-import { Settings, Download, Upload, ShieldCheck, Lock, KeyRound, Plus, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { usePWAInstall } from '../utils/usePWAInstall';
+import {
+  Settings,
+  Download,
+  Upload,
+  ShieldCheck,
+  Lock,
+  KeyRound,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  AlertCircle,
+  Sun,
+  Moon,
+  Smartphone,
+  Sparkles
+} from 'lucide-react';
 
 interface SettingsTabProps {
   workspace: Workspace;
   onUpdateWorkspace: (ws: Workspace) => void;
   darkMode: boolean;
+  onToggleDarkMode: () => void;
+  onLockVault: () => void;
   onOpenInstallModal: () => void;
 }
 
-export const SettingsTab: React.FC<SettingsTabProps> = ({ workspace, onUpdateWorkspace, darkMode, onOpenInstallModal }) => {
+export const SettingsTab: React.FC<SettingsTabProps> = ({
+  workspace,
+  onUpdateWorkspace,
+  darkMode,
+  onToggleDarkMode,
+  onLockVault,
+  onOpenInstallModal
+}) => {
   const [goalHours, setGoalHours] = useState(workspace.goalHours);
   const [newExpenseCat, setNewExpenseCat] = useState('');
   const [newIncomeCat, setNewIncomeCat] = useState('');
+
+  // PWA install hook
+  const { isInstallable, isInstalled, install } = usePWAInstall();
 
   // Encryption export/import state
   const [passphrase, setPassphrase] = useState('');
@@ -28,7 +56,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ workspace, onUpdateWor
   const handleSaveGeneral = (e: React.FormEvent) => {
     e.preventDefault();
     onUpdateWorkspace({ ...workspace, goalHours: Number(goalHours) });
-    setMessage({ type: 'success', text: 'Settings updated successfully.' });
+    setMessage({ type: 'success', text: 'Daily work goal updated successfully.' });
   };
 
   const handleAddExpenseCategory = (e: React.FormEvent) => {
@@ -111,7 +139,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ workspace, onUpdateWor
       const content = event.target?.result as string;
       setImportFileContent(content);
       
-      // Try parsing as plain JSON first
       try {
         const parsed = JSON.parse(content);
         if (parsed && parsed.format === 'daybook-workspace') {
@@ -166,6 +193,120 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ workspace, onUpdateWor
         </div>
       )}
 
+      {/* App Preferences & Controls Section */}
+      <div className={`p-6 rounded-3xl border ${
+        darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-emerald-900/10 shadow-sm'
+      }`}>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="font-bold text-base">App Controls & Preferences</h4>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Manage theme appearance, security vault, and PWA installation</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Theme Switcher */}
+          <div className={`p-5 rounded-2xl border flex flex-col justify-between ${
+            darkMode ? 'bg-zinc-800/40 border-zinc-700/50' : 'bg-[#fcfbf9] border-emerald-900/10'
+          }`}>
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Theme</span>
+                {darkMode ? <Moon className="w-5 h-5 text-indigo-400" /> : <Sun className="w-5 h-5 text-amber-500" />}
+              </div>
+              <h5 className="font-semibold text-sm mb-1">{darkMode ? 'Dark Theme' : 'Light Theme'}</h5>
+              <p className="text-xs text-zinc-500 mb-4">
+                {darkMode ? 'Comfortable deep contrast for focused sessions.' : 'Calm, soft cream & green minimal aesthetic.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onToggleDarkMode}
+              className={`w-full py-2.5 px-4 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                darkMode
+                  ? 'bg-zinc-700 hover:bg-zinc-600 text-white border-zinc-600'
+                  : 'bg-white hover:bg-zinc-100 text-zinc-800 border-zinc-200 shadow-sm'
+              }`}
+            >
+              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
+              Switch to {darkMode ? 'Light Mode' : 'Dark Mode'}
+            </button>
+          </div>
+
+          {/* Lock Vault Control */}
+          <div className={`p-5 rounded-2xl border flex flex-col justify-between ${
+            darkMode ? 'bg-zinc-800/40 border-zinc-700/50' : 'bg-[#fcfbf9] border-emerald-900/10'
+          }`}>
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Security</span>
+                <Lock className="w-5 h-5 text-amber-600" />
+              </div>
+              <h5 className="font-semibold text-sm mb-1">Lock Device Vault</h5>
+              <p className="text-xs text-zinc-500 mb-4">
+                Locks Daybook immediately. Requires your 12+ character passphrase to reopen.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onLockVault}
+              className="w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-md shadow-amber-600/20 transition-all cursor-pointer"
+            >
+              <Lock className="w-4 h-4" />
+              Lock Vault Now
+            </button>
+          </div>
+
+          {/* PWA App Installation */}
+          <div className={`p-5 rounded-2xl border flex flex-col justify-between ${
+            darkMode ? 'bg-zinc-800/40 border-zinc-700/50' : 'bg-[#fcfbf9] border-emerald-900/10'
+          }`}>
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Progressive Web App</span>
+                <Smartphone className="w-5 h-5 text-emerald-600" />
+              </div>
+              <h5 className="font-semibold text-sm mb-1">
+                {isInstalled ? 'App Installed' : 'Install Daybook App'}
+              </h5>
+              <p className="text-xs text-zinc-500 mb-4">
+                {isInstalled
+                  ? 'Daybook is active in standalone app mode with offline storage.'
+                  : 'Install to your home screen or desktop to run standalone with zero URL bars.'}
+              </p>
+            </div>
+
+            {isInstalled ? (
+              <div className="py-2.5 px-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                Active Standalone PWA
+              </div>
+            ) : isInstallable ? (
+              <button
+                type="button"
+                onClick={install}
+                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+              >
+                <Smartphone className="w-4 h-4" />
+                Install Daybook PWA
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenInstallModal}
+                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+              >
+                <Smartphone className="w-4 h-4" />
+                Install Guide & Options
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* General Settings */}
       <div className={`p-6 rounded-3xl border ${
         darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-emerald-900/10 shadow-sm'
@@ -191,7 +332,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ workspace, onUpdateWor
 
           <button
             type="submit"
-            className="py-2.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm shadow-lg shadow-emerald-600/20 transition-all"
+            className="py-2.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
           >
             Save Goal
           </button>
@@ -217,7 +358,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ workspace, onUpdateWor
             />
             <button
               type="submit"
-              className="py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition-all"
+              className="py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition-all cursor-pointer"
             >
               Add
             </button>
@@ -264,7 +405,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ workspace, onUpdateWor
             />
             <button
               type="submit"
-              className="py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition-all"
+              className="py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition-all cursor-pointer"
             >
               Add
             </button>
@@ -310,8 +451,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ workspace, onUpdateWor
             <p className="text-xs text-zinc-500">Download a plain JSON backup or an AES-256-GCM encrypted backup.</p>
 
             <button
+              type="button"
               onClick={handleExportJson}
-              className="w-full py-2.5 px-4 rounded-xl bg-zinc-800 dark:bg-zinc-700 hover:bg-zinc-900 text-white font-medium text-xs flex items-center justify-center gap-2 transition-all"
+              className="w-full py-2.5 px-4 rounded-xl bg-zinc-800 dark:bg-zinc-700 hover:bg-zinc-900 text-white font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <Download className="w-4 h-4" />
               Export Plain JSON
@@ -331,8 +473,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ workspace, onUpdateWor
                 }`}
               />
               <button
+                type="button"
                 onClick={handleExportEncrypted}
-                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all"
+                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
               >
                 <ShieldCheck className="w-4 h-4" />
                 Export Encrypted (.enc)
@@ -351,7 +494,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ workspace, onUpdateWor
               type="file"
               accept=".json,.enc"
               onChange={handleFileChange}
-              className="w-full text-xs text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 dark:file:bg-emerald-950 dark:file:text-emerald-300 hover:file:bg-emerald-100"
+              className="w-full text-xs text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 dark:file:bg-emerald-950 dark:file:text-emerald-300 hover:file:bg-emerald-100 cursor-pointer"
             />
 
             {importFileContent && !importPreviewData && (
@@ -369,8 +512,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ workspace, onUpdateWor
                   }`}
                 />
                 <button
+                  type="button"
                   onClick={handleDecryptImport}
-                  className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs shadow-md shadow-emerald-600/20 transition-all"
+                  className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
                 >
                   Decrypt & Review
                 </button>
@@ -384,8 +528,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ workspace, onUpdateWor
                   Tasks: {importPreviewData.tasks.length} | Logs: {importPreviewData.logs.length} | Money Records: {importPreviewData.money.length}
                 </p>
                 <button
+                  type="button"
                   onClick={handleConfirmImport}
-                  className="w-full py-2 px-3 rounded-lg bg-emerald-600 text-white font-medium shadow transition-all"
+                  className="w-full py-2 px-3 rounded-lg bg-emerald-600 text-white font-medium shadow transition-all cursor-pointer"
                 >
                   Confirm & Replace Workspace
                 </button>

@@ -1,9 +1,12 @@
 {
+  "id": "/",
   "name": "Daybook — Personal Productivity & Life OS",
   "short_name": "Daybook",
   "description": "Production-ready personal productivity PWA with tasks, time tracking, money management, encrypted backups, and offline support.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#fdfbf7",
   "theme_color": "#10b981",
   "icons": [
@@ -11,13 +14,19 @@
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
